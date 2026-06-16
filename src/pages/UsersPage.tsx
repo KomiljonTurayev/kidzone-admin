@@ -8,7 +8,15 @@ export default function UsersPage() {
   const { data, isLoading, error } = useUsers(page);
 
   if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
-  if (error) return <p className="text-destructive">Failed to load users.</p>;
+  if (error) {
+    const msg = (error as { message?: string }).message ?? 'Unknown error';
+    const isNetwork = msg === 'Network Error';
+    return (
+      <p className="text-destructive">
+        {isNetwork ? 'Cannot reach server — make sure the backend is running.' : `Failed to load users: ${msg}`}
+      </p>
+    );
+  }
 
   const totalPages = data ? Math.ceil(data.total / data.size) : 0;
 
