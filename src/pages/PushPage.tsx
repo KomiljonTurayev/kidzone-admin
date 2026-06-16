@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -8,45 +8,21 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { sendPush, extractErrorMessage } from '../api/push';
-
-const STORAGE_KEY = 'push_last_sent';
-
-interface LastSent {
-  title: string;
-  body: string;
-  uid: string;
-  sentAt: string;
-}
-
-function loadLast(): LastSent | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-function saveLast(title: string, body: string, uid: string) {
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify({ title, body, uid, sentAt: new Date().toISOString() }),
-  );
-}
+import { usePushHistory, type HistoryEntry } from '../hooks/usePushHistory';
 
 export default function PushPage() {
   const [searchParams] = useSearchParams();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [uid, setUid] = useState(() => searchParams.get('uid') ?? '');
-  const [last, setLast] = useState<LastSent | null>(loadLast);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const { history, addEntry } = usePushHistory();
 
   const { mutate, isPending } = useMutation({
     mutationFn: () => sendPush(title, body, uid || undefined),
     onSuccess: (data) => {
       toast.success(`Sent! Message ID: ${data.messageId}`);
-      saveLast(title, body, uid);
-      setLast(loadLast());
+      addEntry(title, body, uid);
       setTitle(''); setBody(''); setUid('');
     },
     onError: (error) => toast.error(extractErrorMessage(error)),
@@ -54,39 +30,16 @@ export default function PushPage() {
 
   const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); mutate(); };
 
-  const reuse = () => {
-    if (!last) return;
-    setTitle(last.title);
-    setBody(last.body);
-    setUid(last.uid);
+  const reuse = (entry: HistoryEntry) => {
+    setTitle(entry.title);
+    setBody(entry.body);
+    setUid(entry.uid);
+    titleRef.current?.focus();
   };
 
   return (
     <div className="max-w-lg space-y-4">
       <h1 className="text-2xl font-semibold">Push Notification</h1>
-
-      {last && (
-        <Card className="border-dashed bg-muted/40">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Last sent · {new Date(last.sentAt).toLocaleString()}
-              </CardTitle>
-              <Button variant="outline" size="sm" onClick={reuse}>
-                Re-use
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-1 text-sm">
-            <p><span className="font-medium">Title:</span> {last.title}</p>
-            <p><span className="font-medium">Body:</span> {last.body}</p>
-            <p>
-              <span className="font-medium">UID:</span>{' '}
-              {last.uid || <span className="text-muted-foreground">all users</span>}
-            </p>
-          </CardContent>
-        </Card>
-      )}
 
       <Card>
         <CardHeader><CardTitle>Send Notification</CardTitle></CardHeader>
@@ -96,9 +49,9 @@ export default function PushPage() {
               <Label htmlFor="title">Title</Label>
               <Input
                 id="title"
+                ref={titleRef}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder={last?.title}
                 required
               />
             </div>
@@ -108,7 +61,6 @@ export default function PushPage() {
                 id="body"
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
-                placeholder={last?.body}
                 required
                 rows={3}
               />
@@ -119,7 +71,7 @@ export default function PushPage() {
                 id="uid"
                 value={uid}
                 onChange={(e) => setUid(e.target.value)}
-                placeholder={last?.uid || 'Leave empty to send to all users'}
+                placeholder="Leave empty to send to all users"
               />
             </div>
             <Button type="submit" className="w-full" disabled={isPending}>
@@ -128,6 +80,34 @@ export default function PushPage() {
           </form>
         </CardContent>
       </Card>
+
+      <div className="space-y-2">
+        <h2 className="text-lg font-medium">History</h2>
+        {history.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No notifications sent yet.</p>
+        ) : (
+          history.map((entry, i) => (
+            <Card key={i}>
+              <CardContent className="py-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="space-y-0.5 text-sm min-w-0">
+                    <p className="text-muted-foreground">
+                      {new Date(entry.sentAt).toLocaleString()}
+                      {' · '}
+                      {entry.uid ? `uid: ${entry.uid.slice(0, 16)}…` : 'All users'}
+                    </p>
+                    <p className="font-medium truncate">{entry.title}</p>
+                    <p className="text-muted-foreground truncate">{entry.body}</p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => reuse(entry)} className="shrink-0">
+                    Re-use
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
     </div>
   );
 }
