@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -33,12 +33,16 @@ export default function UserDetailPage() {
     });
   };
 
+  const fcmBadge = user.fcmToken
+    ? <Badge className="bg-green-600 hover:bg-green-600 text-white font-mono">{user.fcmToken.slice(0, 16)}…</Badge>
+    : <Badge variant="destructive">No token</Badge>;
+
   const fields: [string, React.ReactNode][] = [
     ['UID', user.uid],
     ['Email', user.email],
     ['Age group', user.ageGroup],
     ['Status', <Badge variant={user.status === 'active' ? 'default' : 'destructive'}>{user.status}</Badge>],
-    ['FCM token', user.fcmToken || '—'],
+    ['FCM token', fcmBadge],
     ['Created at', user.createdAt ? new Date(user.createdAt).toLocaleString() : '—'],
     ['Last active', user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleString() : '—'],
   ];
@@ -50,6 +54,9 @@ export default function UserDetailPage() {
         <h1 className="text-2xl font-semibold">User Detail</h1>
       </div>
       <div className="flex gap-2">
+        <Button variant="outline" onClick={() => navigate(`/push?uid=${uid}`)}>
+          <Bell className="h-4 w-4 mr-1" />Send push
+        </Button>
         <Button variant="outline" disabled={user.status === 'banned'} onClick={handleBan}>Ban user</Button>
         <Button variant="destructive" onClick={() => setShowDelete(true)}>Delete user</Button>
       </div>
