@@ -12,3 +12,6 @@ export const deleteUser = (uid: string) =>
 
 export const banUser = (uid: string) =>
   api.post<UserDto>(`/admin/users/${uid}/ban`).then((r) => r.data);
+
+export const unbanUser = (uid: string) =>
+  api.post<UserDto>(`/admin/users/${uid}/unban`).then((r) => r.data);

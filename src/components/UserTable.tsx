@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 import type { UserDto } from '../types';
-import { useDeleteUser, useBanUser } from '../hooks/useUsers';
+import { useDeleteUser, useBanUser, useUnbanUser } from '../hooks/useUsers';
 
 interface Props {
   users: UserDto[];
@@ -19,6 +19,7 @@ export default function UserTable({ users }: Props) {
   const [deleteUid, setDeleteUid] = useState<string | null>(null);
   const { mutate: deleteUser } = useDeleteUser();
   const { mutate: banUser } = useBanUser();
+  const { mutate: unbanUser } = useUnbanUser();
 
   const handleDelete = () => {
     if (!deleteUid) return;
@@ -33,6 +34,13 @@ export default function UserTable({ users }: Props) {
     banUser(uid, {
       onSuccess: () => toast.success('User banned'),
       onError: () => toast.error('Failed to ban user'),
+    });
+  };
+
+  const handleUnban = (uid: string) => {
+    unbanUser(uid, {
+      onSuccess: () => toast.success('User unbanned'),
+      onError: () => toast.error('Failed to unban user'),
     });
   };
 
@@ -65,7 +73,11 @@ export default function UserTable({ users }: Props) {
                     <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem disabled={u.status === 'banned'} onClick={() => handleBan(u.uid)}>Ban</DropdownMenuItem>
+                    {u.status === 'banned' ? (
+                      <DropdownMenuItem onClick={() => handleUnban(u.uid)}>Unban</DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem onClick={() => handleBan(u.uid)}>Ban</DropdownMenuItem>
+                    )}
                     <DropdownMenuItem className="text-destructive" onClick={() => setDeleteUid(u.uid)}>Delete</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

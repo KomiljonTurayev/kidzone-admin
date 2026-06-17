@@ -1,10 +1,11 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Users, BarChart2, Bell, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart2, Bell, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { clearToken } from '../lib/token';
 import { cn } from '@/lib/utils';
 
 const navItems = [
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/users', label: 'Users', icon: Users },
   { to: '/stats', label: 'Stats', icon: BarChart2 },
   { to: '/push', label: 'Push', icon: Bell },

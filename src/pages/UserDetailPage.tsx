@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { useUser, useDeleteUser, useBanUser } from '../hooks/useUsers';
+import { useUser, useDeleteUser, useBanUser, useUnbanUser } from '../hooks/useUsers';
 
 export default function UserDetailPage() {
   const { uid } = useParams<{ uid: string }>();
@@ -14,6 +14,7 @@ export default function UserDetailPage() {
   const { data: user, isLoading, error } = useUser(uid!);
   const { mutate: deleteUser } = useDeleteUser();
   const { mutate: banUser } = useBanUser();
+  const { mutate: unbanUser } = useUnbanUser();
   const [showDelete, setShowDelete] = useState(false);
 
   if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
@@ -30,6 +31,13 @@ export default function UserDetailPage() {
     banUser(uid!, {
       onSuccess: () => toast.success('User banned'),
       onError: () => toast.error('Failed to ban user'),
+    });
+  };
+
+  const handleUnban = () => {
+    unbanUser(uid!, {
+      onSuccess: () => toast.success('User unbanned'),
+      onError: () => toast.error('Failed to unban user'),
     });
   };
 
@@ -57,7 +65,11 @@ export default function UserDetailPage() {
         <Button variant="outline" onClick={() => navigate(`/push?uid=${uid}`)}>
           <Bell className="h-4 w-4 mr-1" />Send push
         </Button>
-        <Button variant="outline" disabled={user.status === 'banned'} onClick={handleBan}>Ban user</Button>
+        {user.status === 'banned' ? (
+          <Button variant="outline" onClick={handleUnban}>Unban user</Button>
+        ) : (
+          <Button variant="outline" onClick={handleBan}>Ban user</Button>
+        )}
         <Button variant="destructive" onClick={() => setShowDelete(true)}>Delete user</Button>
       </div>
       <Card>

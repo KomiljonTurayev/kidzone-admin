@@ -4,6 +4,7 @@ import { Toaster } from 'sonner';
 import PrivateRoute from './components/PrivateRoute';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
+import DashboardPage from './pages/DashboardPage';
 import UsersPage from './pages/UsersPage';
 import UserDetailPage from './pages/UserDetailPage';
 import StatsPage from './pages/StatsPage';
@@ -21,7 +22,8 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route element={<PrivateRoute />}>
             <Route element={<Layout />}>
-              <Route index element={<Navigate to="/users" replace />} />
+              <Route index element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/users" element={<UsersPage />} />
               <Route path="/users/:uid" element={<UserDetailPage />} />
               <Route path="/stats" element={<StatsPage />} />
