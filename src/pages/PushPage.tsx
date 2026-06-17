@@ -10,19 +10,23 @@ import { Button } from '@/components/ui/button';
 import { sendPush, extractErrorMessage } from '../api/push';
 import { usePushHistory, type HistoryEntry } from '../hooks/usePushHistory';
 
+type Target = 'all' | 'single';
+
 export default function PushPage() {
   const [searchParams] = useSearchParams();
+  const initialUid = searchParams.get('uid') ?? '';
+  const [target, setTarget] = useState<Target>(initialUid ? 'single' : 'all');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
-  const [uid, setUid] = useState(() => searchParams.get('uid') ?? '');
+  const [uid, setUid] = useState(initialUid);
   const titleRef = useRef<HTMLInputElement>(null);
   const { history, addEntry } = usePushHistory();
 
   const { mutate, isPending } = useMutation({
-    mutationFn: () => sendPush(title, body, uid || undefined),
+    mutationFn: () => sendPush(title, body, target === 'single' ? uid || undefined : undefined),
     onSuccess: (data) => {
       toast.success(`Sent! Message ID: ${data.messageId}`);
-      addEntry(title, body, uid);
+      addEntry(title, body, target === 'single' ? uid : '');
       setTitle(''); setBody(''); setUid('');
     },
     onError: (error) => toast.error(extractErrorMessage(error)),
@@ -33,7 +37,13 @@ export default function PushPage() {
   const reuse = (entry: HistoryEntry) => {
     setTitle(entry.title);
     setBody(entry.body);
-    setUid(entry.uid);
+    if (entry.uid) {
+      setTarget('single');
+      setUid(entry.uid);
+    } else {
+      setTarget('all');
+      setUid('');
+    }
     titleRef.current?.focus();
   };
 
@@ -45,6 +55,47 @@ export default function PushPage() {
         <CardHeader><CardTitle>Send Notification</CardTitle></CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1">
+              <Label>Recipients</Label>
+              <div className="flex rounded-md border overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setTarget('all')}
+                  className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                    target === 'all'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-background text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  All users
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTarget('single')}
+                  className={`flex-1 py-2 text-sm font-medium transition-colors border-l ${
+                    target === 'single'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-background text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  Specific user
+                </button>
+              </div>
+            </div>
+
+            {target === 'single' && (
+              <div className="space-y-1">
+                <Label htmlFor="uid">User UID</Label>
+                <Input
+                  id="uid"
+                  value={uid}
+                  onChange={(e) => setUid(e.target.value)}
+                  placeholder="Enter user UID"
+                  required
+                />
+              </div>
+            )}
+
             <div className="space-y-1">
               <Label htmlFor="title">Title</Label>
               <Input
@@ -65,17 +116,13 @@ export default function PushPage() {
                 rows={3}
               />
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="uid">UID (optional)</Label>
-              <Input
-                id="uid"
-                value={uid}
-                onChange={(e) => setUid(e.target.value)}
-                placeholder="Leave empty to send to all users"
-              />
-            </div>
+
             <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending ? 'Sending…' : 'Send notification'}
+              {isPending
+                ? 'Sending…'
+                : target === 'all'
+                  ? 'Send to all users'
+                  : 'Send to user'}
             </Button>
           </form>
         </CardContent>
