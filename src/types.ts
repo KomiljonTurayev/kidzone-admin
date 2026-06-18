@@ -38,3 +38,29 @@ export interface PushResponse {
   success: boolean;
   messageId: string;
 }
+
+export interface BannerDto {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+  link: string;
+  targetAgeGroup: string | null;
+  active: boolean;
+  startDate: string;
+  endDate: string;
+  order: number;
+  createdAt: string | null;
+}
+
+export interface BannerRequest {
+  title: string;
+  description: string;
+  imageUrl: string;
+  link: string;
+  targetAgeGroup: string | null;
+  active: boolean;
+  startDate: string;
+  endDate: string;
+  order: number;
+}
