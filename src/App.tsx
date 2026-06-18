@@ -31,8 +31,8 @@ export default function App() {
               <Route path="/stats" element={<StatsPage />} />
               <Route path="/push" element={<PushPage />} />
               <Route path="/banners" element={<BannersPage />} />
-              <Route path="/banners/new" element={<BannerFormPage />} />
-              <Route path="/banners/:id/edit" element={<BannerFormPage />} />
+              <Route path="/banners/new" element={<BannerFormPage key="new" />} />
+              <Route path="/banners/:id/edit" element={<BannerFormPage key="edit" />} />
             </Route>
           </Route>
         </Routes>

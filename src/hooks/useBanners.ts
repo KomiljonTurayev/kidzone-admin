@@ -6,7 +6,7 @@ export const useBanners = () =>
   useQuery({ queryKey: ['banners'], queryFn: listBanners });
 
 export const useBanner = (id: string) =>
-  useQuery({ queryKey: ['banners', id], queryFn: () => getBanner(id), enabled: !!id });
+  useQuery({ queryKey: ['banners', id], queryFn: () => getBanner(id), enabled: !!id, staleTime: Infinity });
 
 export const useCreateBanner = () => {
   const qc = useQueryClient();

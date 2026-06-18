@@ -12,8 +12,8 @@ import type { BannerRequest } from '../types';
 
 const AGE_GROUPS = ['3-5', '6-8', '9-12'];
 
-const toIsoStart = (d: string) => `${d}T00:00:00Z`;
-const toIsoEnd = (d: string) => `${d}T23:59:59Z`;
+const toIsoStart = (d: string) => new Date(`${d}T00:00:00`).toISOString();
+const toIsoEnd = (d: string) => new Date(`${d}T23:59:59`).toISOString();
 const toDateInput = (iso: string) => iso.slice(0, 10);
 
 export default function BannerFormPage() {
@@ -65,6 +65,10 @@ export default function BannerFormPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (endDate < startDate) {
+      toast.error('End date must be after start date');
+      return;
+    }
     const data = buildRequest();
     if (isEdit) {
       updateBanner({ id: id!, data }, {
