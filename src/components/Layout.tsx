@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, BarChart2, Bell, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart2, Bell, Image, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { clearToken } from '../lib/token';
 import { cn } from '@/lib/utils';
@@ -9,6 +9,7 @@ const navItems = [
   { to: '/users', label: 'Users', icon: Users },
   { to: '/stats', label: 'Stats', icon: BarChart2 },
   { to: '/push', label: 'Push', icon: Bell },
+  { to: '/banners', label: 'Banners', icon: Image },
 ];
 
 export default function Layout() {

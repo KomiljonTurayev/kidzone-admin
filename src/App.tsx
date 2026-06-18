@@ -9,6 +9,8 @@ import UsersPage from './pages/UsersPage';
 import UserDetailPage from './pages/UserDetailPage';
 import StatsPage from './pages/StatsPage';
 import PushPage from './pages/PushPage';
+import BannersPage from './pages/BannersPage';
+import BannerFormPage from './pages/BannerFormPage';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1 } },
@@ -28,6 +30,9 @@ export default function App() {
               <Route path="/users/:uid" element={<UserDetailPage />} />
               <Route path="/stats" element={<StatsPage />} />
               <Route path="/push" element={<PushPage />} />
+              <Route path="/banners" element={<BannersPage />} />
+              <Route path="/banners/new" element={<BannerFormPage />} />
+              <Route path="/banners/:id/edit" element={<BannerFormPage />} />
             </Route>
           </Route>
         </Routes>
