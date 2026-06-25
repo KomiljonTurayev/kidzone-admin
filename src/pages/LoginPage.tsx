@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,13 +7,19 @@ import { Button } from '@/components/ui/button';
 import { useLogin } from '../hooks/useAuth';
 
 export default function LoginPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { mutate, isPending, error } = useLogin();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    mutate({ email, password });
+    mutate(
+      { email, password },
+      {
+        onSuccess: () => navigate('/dashboard'),
+      }
+    );
   };
 
   return (

@@ -1,14 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 import type { UserDto } from '../types';
 import { useDeleteUser, useBanUser, useUnbanUser } from '../hooks/useUsers';
+import UserActions from './UserActions';
+import DeleteUserDialog from './DeleteUserDialog';
 
 interface Props {
   users: UserDto[];
@@ -26,8 +24,8 @@ export default function UserTable({ users }: Props) {
     deleteUser(deleteUid, {
       onSuccess: () => toast.success('User deleted'),
       onError: () => toast.error('Failed to delete user'),
+      onSettled: () => setDeleteUid(null),
     });
-    setDeleteUid(null);
   };
 
   const handleBan = (uid: string) => {
@@ -68,42 +66,25 @@ export default function UserTable({ users }: Props) {
               </TableCell>
               <TableCell>{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}</TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {u.status === 'banned' ? (
-                      <DropdownMenuItem onClick={() => handleUnban(u.uid)}>Unban</DropdownMenuItem>
-                    ) : (
-                      <DropdownMenuItem onClick={() => handleBan(u.uid)}>Ban</DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem className="text-destructive" onClick={() => setDeleteUid(u.uid)}>Delete</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <UserActions user={u} onBan={handleBan} onUnban={handleUnban} onDelete={setDeleteUid} />
               </TableCell>
             </TableRow>
           ))}
           {users.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">No users found</TableCell>
+              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                No users found
+              </TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
 
-      <AlertDialog open={!!deleteUid} onOpenChange={(open) => !open && setDeleteUid(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete user?</AlertDialogTitle>
-            <AlertDialogDescription>This permanently deletes the user from Firebase Auth and Firestore.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteUserDialog
+        open={!!deleteUid}
+        onOpenChange={(open) => !open && setDeleteUid(null)}
+        onConfirm={handleDelete}
+      />
     </>
   );
 }

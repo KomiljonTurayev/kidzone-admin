@@ -1,37 +1,32 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import UserTable from '../components/UserTable';
 import { useUsers } from '../hooks/useUsers';
+import PaginationControls from '../components/PaginationControls';
+import QueryStateWrapper from '../components/QueryStateWrapper';
 
 export default function UsersPage() {
   const [page, setPage] = useState(0);
   const { data, isLoading, error } = useUsers(page);
-
-  if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
-  if (error) {
-    const msg = (error as { message?: string }).message ?? 'Unknown error';
-    const isNetwork = msg === 'Network Error';
-    return (
-      <p className="text-destructive">
-        {isNetwork ? 'Cannot reach server — make sure the backend is running.' : `Failed to load users: ${msg}`}
-      </p>
-    );
-  }
 
   const totalPages = data ? Math.ceil(data.total / data.size) : 0;
 
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold">Users</h1>
-      <UserTable users={data?.users ?? []} />
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>{data?.total ?? 0} total users</span>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Previous</Button>
-          <span className="px-2">Page {page + 1} of {totalPages || 1}</span>
-          <Button variant="outline" size="sm" disabled={page + 1 >= totalPages} onClick={() => setPage((p) => p + 1)}>Next</Button>
-        </div>
-      </div>
+      <QueryStateWrapper
+        isLoading={isLoading}
+        error={error}
+        errorMessagePrefix="Failed to load users"
+      >
+        <UserTable users={data?.users ?? []} />
+        <PaginationControls
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={data?.total ?? 0}
+          itemName="users"
+          onPageChange={setPage}
+        />
+      </QueryStateWrapper>
     </div>
   );
 }
